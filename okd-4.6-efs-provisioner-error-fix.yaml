@@ -1,0 +1,102 @@
+# OKD 4.6 EFS Provisioner Error Fix
+# Reference: https://docs.openshift.com/container-platform/4.2/storage/persistent_storage/persistent-storage-efs.html#:~:text=The%20EFS%20provisioner%20is%20an,volume%20as%20an%20NFS%20share.&text=Create%20A%20ConfigMap%20that%20defines,a%20StorageClass%20for%20provisioning%20volumes.
+
+1. Find namespace with aws-efs storage class based VPC
+
+2. Copy configMap, serviceAccount, role, roleBinding to new target Namespace
+    $ oc project <namespace with existing working aws-efs>
+    $ oc get cm efs-provisioner -o yaml > cm-efs-provisioner.yaml
+    $ oc get sa efs-provisioner -o yaml > sa-efs-provisioner.yaml
+    $ oc get role leader-locking-efs-provisioner -o yaml > role-leader-locking-efs-provisioner.yaml
+    $ oc get rolebinding leader-locking-efs-provisioner -o yaml > rolebinding-leader-locking-efs-provisioner.yaml
+    $ oc get clusterrolebinding run-efs-provisioner -o yaml > crole-binding-leader-locking-efs-provisioner.yaml
+
+3. Modify yaml files, remove all metadata value expect name
+
+4. Create efs-provisioner POD - provisoner.yaml
+    ---
+    Pod
+    kind: Pod
+    apiVersion: v1
+    metadata:
+    name: efs-provisioner
+    spec:
+    serviceAccount: efs-provisioner
+    containers:
+        - name: efs-provisioner
+        image: quay.io/external_storage/efs-provisioner:latest
+        env:
+            - name: PROVISIONER_NAME
+            valueFrom:
+                configMapKeyRef:
+                name: efs-provisioner
+                key: provisioner.name
+            - name: FILE_SYSTEM_ID
+            valueFrom:
+                configMapKeyRef:
+                name: efs-provisioner
+                key: file.system.id
+            - name: AWS_REGION
+            valueFrom:
+                configMapKeyRef:
+                name: efs-provisioner
+                key: aws.region
+            - name: DNS_NAME
+            valueFrom:
+                configMapKeyRef:
+                name: efs-provisioner
+                key: dns.name
+                optional: true
+        volumeMounts:
+            - name: pv-volume
+            mountPath: /persistentvolumes
+    volumes:
+        - name: pv-volume
+        nfs:
+            server: <filesystem ID>.efs.<region>.amazonaws.com
+            path: / 
+    ---
+
+    Supplier Values: <filesystem ID>, <region>
+
+5. Add Target Namespace to Cluster Role Binding: efs-provisioner-runner - ADD Contents to cluster role binding yaml
+    subjects:
+        - kind: ServiceAccount
+        name: efs-provisioner
+        namespace: <target namespace>
+
+
+6. Implement EFS required component copied from other namespace 
+    $ oc project <target Namespace>
+    $ oc apply -f cm-efs-provisioner.yaml
+    $ oc apply -f sa-efs-provisioner.yaml
+    $ oc apply -f role-leader-locking-efs-provisioner.yaml
+    $ oc apply -f rolebinding-leader-locking-efs-provisioner.yaml
+    $ oc apply -f crole-binding-leader-locking-efs-provisioner.yaml
+    $ oc apply -f provisoner.yaml
+
+7. Create NEW PVC | If there are existing PVC with pending state delete the said PVC and create a new one with same name | pvc.yaml
+    ---
+    kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+    name: efs-req-okd4-same-name-as-previous-pvc
+    annotations:
+        volume.beta.kubernetes.io/storage-provisioner: openshift.org/aws-efs
+    finalizers:
+        - kubernetes.io/pvc-protection
+    spec:
+    accessModes:
+        - ReadWriteOnce 
+    resources:
+        requests:
+        storage: 1Gi 
+    storageClassName: aws-efs 
+    volumeMode: Filesystem
+    ---
+
+8. Apply VPC
+    $ oc apply -f pvc.yaml
+
+9. PVC should be bound status - that confirms of the fix works.
+    $ oc get pvc -o wide
