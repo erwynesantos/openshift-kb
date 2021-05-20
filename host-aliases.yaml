@@ -1,0 +1,47 @@
+# Problem: 
+## When deploying microservices (in the new STG environment) consuming from the new kafka cluster, 
+## microservices fail saying it cannot resolve kafka hosts.
+
+# Reason:
+## The new kafka cluster is not resolvable via dns and we cannot edit the /etc/hosts or /etc/resolv.conf files in OKD 4.5 since the filesystem is read-only. 
+## Using hostAliases we are able to resolve the kafka hosts and consume from them.
+
+### Note: It can be any host/cluster/server, but in this example, we use the kafka cluster as our unresolvable cluster/host.
+
+# Solution:
+## Add hostAliases to the deployment config.
+
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+ name: generic-topic-copier
+spec:
+ replicas: 0
+ :
+ template:
+ spec:
+ containers:
+ - image: ' '
+ :
+ dnsPolicy: ClusterFirst
+ restartPolicy: Always
+ schedulerName: default-scheduler
+ hostAliases:
+ - ip: 10.69.165.141
+ hostnames:
+ - aim-steps-prod-ckafka6
+ - ip: 10.69.165.140
+ hostnames:
+ - aim-steps-prod-ckafka5
+ - ip: 10.69.165.139
+ hostnames:
+ - aim-steps-prod-ckafka4
+ - ip: 10.69.165.138
+ hostnames:
+ - aim-steps-prod-ckafka3
+ - ip: 10.69.165.137
+ hostnames:
+ - aim-steps-prod-ckafka2
+ - ip: 10.69.165.136
+ hostnames:
+ - aim-steps-prod-ckafka1
