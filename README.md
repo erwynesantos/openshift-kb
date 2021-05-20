@@ -1,4 +1,4 @@
-# Openshift Notes
+# OpenShift Notes
 Compiled information for devops/sysads supporting RedHat OpenShift Platform.
 
 ## Contents
