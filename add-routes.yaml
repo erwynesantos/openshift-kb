@@ -1,0 +1,41 @@
+# Adding routes to your project's app
+1. Go to another project
+oc project <other-project>
+
+2. Get the available routes on other-project and copy one
+oc get routes
+
+Output:
+NAME                     HOST/PORT                                            PATH      SERVICES   PORT       TERMINATION   WILDCARD
+tomcat                   tomcat-tomcat.steps-dev-apps.edo.gbtl.com.ph                  tomcat     8080-tcp   edge          None
+tomcat-custom-wildcard   tomcat-wildcard.steps-dev-apps.edo.gbtl.com                tomcat     8080-tcp   edge          None
+tomcat100                tomcat100.steps-dev-apps.edo.gbtl.com                      tomcat     8080-tcp   edge          None
+tomcat101                tomcat101-wildcard.steps-dev-apps.edo.gbtl.com             tomcat     8080-tcp   edge          None
+tomcat2                  tomcat.steps-dev-apps.edo.gbtl.com                         tomcat     8080-tcp   edge          None
+tomcat3                  tomcat3.steps-dev-apps.edo.gbtl.com                        tomcat     8080-tcp                 None
+tomcat4                  tomcat4.steps-dev-apps.edo.gbtl.com                        tomcat     8080-tcp   edge          None
+
+3. Suppose we want to use the tomcat3 route as seen above. Copy that to your local directory and name it as my-route.yaml.
+oc get route tomcat3 -o yaml > my-route.yaml
+
+4. Edit my-route.yaml and only retain the needed entries or as required.
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-app-l2
+spec:
+  host: my-app-l2.steps-dev-apps.edo.gbtl.com
+  port:
+    targetPort: 8080-tcp
+  to:
+    kind: Service
+    name: tomcat
+    weight: 100
+  wildcardPolicy: None
+
+5. Go back to your project.
+oc project <my-project>
+
+6. Create the route.
+oc apply -f my-app-l2.yaml
