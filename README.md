@@ -2,7 +2,9 @@
 Compiled knowledge base and scripts for devops/sysads supporting RedHat OpenShift Platform.
 
 ## Contents
-* [deploying-apps-from-sourcecode.sh](deploying-apps-from-sourcecode.sh): Creation of application with sourcecode such as a GitRepo.
+* [dep-from-sourcecode.sh](deploying-apps-from-sourcecode.sh): Creation of application with sourcecode such as a GitRepo.
+* [dep-from-docker-image.yaml](dep-from-docker-image.yaml): Creation of application using a docker image.
+* [add-routes.yaml](add-routes.yaml): Add routes to the created application.
 * [transfer-files.sh](transfer-files.sh): Transfer files between containers and the local machine.
 * [disk-pressure-fix.sh](disk-pressure-fix.sh): Fix for a specific node's disk pressure.
 * [okd-4.6-efs-provisioner-error-fix.yaml](okd-4.6-efs-provisioner-error-fix.yaml): Fix for _EFS Provisionner Error_ on OKD 4.6 (as of this commit).
