@@ -2,7 +2,7 @@
 Compiled knowledge base and scripts for devops/sysads supporting RedHat OpenShift Platform.
 
 ## Contents
-* [dep-from-sourcecode.sh](deploying-apps-from-sourcecode.sh): Creation of application with sourcecode such as a GitRepo.
+* [dep-from-src.yml](dep-from-src.yml): Creation of application with sourcecode such as a GitRepo.
 * [dep-from-docker-img.yml](dep-from-docker-img.yml): Creation of application using a docker image.
 * [add-routes.yml](add-routes.yml): Add routes to the created application.
 * [transfer-files.sh](transfer-files.sh): Transfer files between containers and the local machine.
