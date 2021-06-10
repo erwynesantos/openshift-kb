@@ -1,7 +1,3 @@
-# L2 Scripts - OKD / Openshift
-
-L2 Scripts - Stored here
-
 ## Enablement
 
 * Connect to one of the INFRA Nodes
